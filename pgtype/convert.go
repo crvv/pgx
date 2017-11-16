@@ -288,14 +288,8 @@ func int64AssignTo(srcVal int64, srcStatus Status, dst interface{}) error {
 		}
 		return nil
 	}
-
-	// if dst is a pointer to pointer and srcStatus is not Present, nil it out
-	if v := reflect.ValueOf(dst); v.Kind() == reflect.Ptr {
-		el := v.Elem()
-		if el.Kind() == reflect.Ptr {
-			el.Set(reflect.Zero(el.Type()))
-			return nil
-		}
+	if srcStatus == Null {
+		return NullAssignTo(dst)
 	}
 
 	return errors.Errorf("cannot assign %v %v into %T", srcVal, srcStatus, dst)
@@ -330,14 +324,8 @@ func float64AssignTo(srcVal float64, srcStatus Status, dst interface{}) error {
 		}
 		return nil
 	}
-
-	// if dst is a pointer to pointer and srcStatus is not Present, nil it out
-	if v := reflect.ValueOf(dst); v.Kind() == reflect.Ptr {
-		el := v.Elem()
-		if el.Kind() == reflect.Ptr {
-			el.Set(reflect.Zero(el.Type()))
-			return nil
-		}
+	if srcStatus == Null {
+		return NullAssignTo(dst)
 	}
 
 	return errors.Errorf("cannot assign %v %v into %T", srcVal, srcStatus, dst)
@@ -354,7 +342,7 @@ func NullAssignTo(dst interface{}) error {
 	dstVal := dstPtr.Elem()
 
 	switch dstVal.Kind() {
-	case reflect.Ptr, reflect.Slice, reflect.Map:
+	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface:
 		dstVal.Set(reflect.Zero(dstVal.Type()))
 		return nil
 	}
